@@ -124,13 +124,13 @@ public class BeerServiceTest {
 
     @Test
     void whenListBeerIsCalledThenReturnAnEmptyListOfBeers() {
-        //when
-        when(beerRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
+        // when
+        when(beerRepository.findAll()).thenReturn(Collections.emptyList());
 
-        //then
-        List<BeerDTO> foundListBeersDTO = beerService.listAll();
+        // then
+        List<BeerDTO> expectedBeersReturned = beerService.listAll();
 
-        assertThat(foundListBeersDTO, is(empty()));
+        assertThat(expectedBeersReturned, is(empty()));
     }
 
     @Test
@@ -146,8 +146,21 @@ public class BeerServiceTest {
         // then
         beerService.deleteById(expectedDeletedBeerDTO.getId());
 
+        // assert
         verify(beerRepository, times(1)).findById(expectedDeletedBeerDTO.getId());
         verify(beerRepository, times(1)).deleteById(expectedDeletedBeerDTO.getId());
+    }
+
+    @Test
+    void whenExclusionIsCalledWithNonexistentIdThenThrownAnException() throws  BeerNotFoundException {
+        // given
+        long nonExistentId = 2L;
+
+        // when
+        when(beerRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // assert
+        assertThrows(BeerNotFoundException.class, () -> beerService.deleteById(nonExistentId));
     }
 
     @Test
@@ -177,7 +190,7 @@ public class BeerServiceTest {
 
         when(beerRepository.findById(expectedBeerDTO.getId())).thenReturn(Optional.of(expectedBeer));
 
-        int quantityToIncrement = 80;
+        int quantityToIncrement = expectedBeer.getMax() + 1;
         assertThrows(BeerStockExceededException.class, () -> beerService.increment(expectedBeerDTO.getId(), quantityToIncrement));
     }
 
@@ -188,7 +201,7 @@ public class BeerServiceTest {
 
         when(beerRepository.findById(expectedBeerDTO.getId())).thenReturn(Optional.of(expectedBeer));
 
-        int quantityToIncrement = 45;
+        int quantityToIncrement = expectedBeerDTO.getMax() - expectedBeer.getQuantity() + 1;
         assertThrows(BeerStockExceededException.class, () -> beerService.increment(expectedBeerDTO.getId(), quantityToIncrement));
     }
 

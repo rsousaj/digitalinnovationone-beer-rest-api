@@ -300,4 +300,16 @@ public class BeerServiceTest {
         verify(beerRepository, times(0)).save(any());
         assertThrows(BeerStockInsufficientException.class, () -> beerService.decrement(expectedBeerDTO.getId(), quantityToDecrement));
     }
+
+    @Test
+    void whenDecrementIsCalledWithInvalidIdThenThrowException () {
+        // given
+        int quantityToDecrement = 10;
+
+        // when
+        when(beerRepository.findById(INVALID_BEER_ID)).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(BeerNotFoundException.class, () -> beerService.decrement(INVALID_BEER_ID, quantityToDecrement));
+    }
 }

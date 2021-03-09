@@ -28,10 +28,9 @@ import java.util.Collections;
 import static one.digitalinnovation.beerstock.utils.JsonConvertionUtils.asJsonString;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.nullable;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -94,31 +93,29 @@ public class BeerControllerTest {
     @Test
     void whenGETIsCalledWithValidNameThenOkStatusIsReturned() throws Exception {
         // given
-        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
 
-        //when
-        when(beerService.findByName(beerDTO.getName())).thenReturn(beerDTO);
+        // when
+        when(beerService.findByName(expectedBeerDTO.getName())).thenReturn(expectedBeerDTO);
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH + "/" + beerDTO.getName())
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc
+                .perform(get(String.format("%s/%s", BEER_API_URL_PATH, expectedBeerDTO.getName())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is(beerDTO.getName())))
-                .andExpect(jsonPath("$.brand", is(beerDTO.getBrand())))
-                .andExpect(jsonPath("$.type", is(beerDTO.getType().toString())));
+                .andExpect(jsonPath("$.name", is(expectedBeerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(expectedBeerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(expectedBeerDTO.getType().toString())));
     }
 
     @Test
     void whenGETIsCalledWithoutRegisteredNameThenNotFoundStatusIsReturned() throws Exception {
-        // given
-        BeerDTO beerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        String notRegisteredName = "not registered name";
 
-        //when
-        when(beerService.findByName(beerDTO.getName())).thenThrow(BeerNotFoundException.class);
+        // when
+        when(beerService.findByName(notRegisteredName)).thenThrow(BeerNotFoundException.class);
 
         // then
-        mockMvc.perform(MockMvcRequestBuilders.get(BEER_API_URL_PATH + "/" + beerDTO.getName())
-                .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(String.format("%s/%s", BEER_API_URL_PATH, notRegisteredName)))
                 .andExpect(status().isNotFound());
     }
 
@@ -165,6 +162,9 @@ public class BeerControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete(BEER_API_URL_PATH + "/" + beerDTO.getId())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
+
+        // assert
+        verify(beerService, times(1)).deleteById(beerDTO.getId());
     }
 
     @Test

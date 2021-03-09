@@ -6,6 +6,7 @@ import one.digitalinnovation.beerstock.entity.Beer;
 import one.digitalinnovation.beerstock.exception.BeerAlreadyRegisteredException;
 import one.digitalinnovation.beerstock.exception.BeerNotFoundException;
 import one.digitalinnovation.beerstock.exception.BeerStockExceededException;
+import one.digitalinnovation.beerstock.exception.BeerStockInsufficientException;
 import one.digitalinnovation.beerstock.mapper.BeerMapper;
 import one.digitalinnovation.beerstock.repository.BeerRepository;
 import org.hamcrest.MatcherAssert;
@@ -20,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.StringTokenizer;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -265,4 +267,37 @@ public class BeerServiceTest {
 //
 //        assertThrows(BeerNotFoundException.class, () -> beerService.decrement(INVALID_BEER_ID, quantityToDecrement));
 //    }
+
+    @Test
+    void whenDecrementIsCalledThenDecrementBeerStock() throws BeerNotFoundException, BeerStockInsufficientException {
+        // given
+        BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        Beer expectedBeer = beerMapper.toModel(expectedBeerDTO);
+        int quantityToDecrement = 10;
+        int quantityAfterDecrement = expectedBeerDTO.getQuantity() - quantityToDecrement;
+
+        // when
+        when(beerRepository.findById(expectedBeerDTO.getId())).thenReturn(Optional.of(expectedBeer));
+        when(beerRepository.save(expectedBeer)).thenReturn(expectedBeer);
+
+        // then
+        BeerDTO returnedBeer = beerService.decrement(expectedBeerDTO.getId(), quantityToDecrement);
+
+        assertThat(returnedBeer.getQuantity(), equalTo(quantityAfterDecrement));
+    }
+
+    @Test
+    void whenDecrementQuantityIsGreaterThanQuantityThenThrowException () {
+        // given
+        BeerDTO expectedBeerDTO = BeerDTOBuilder.builder().build().toBeerDTO();
+        Beer expectedBeer = beerMapper.toModel(expectedBeerDTO);
+        int quantityToDecrement = expectedBeer.getQuantity() + 1;
+
+        // when
+        when(beerRepository.findById(expectedBeerDTO.getId())).thenReturn(Optional.of(expectedBeer));
+
+        // then
+        verify(beerRepository, times(0)).save(any());
+        assertThrows(BeerStockInsufficientException.class, () -> beerService.decrement(expectedBeerDTO.getId(), quantityToDecrement));
+    }
 }

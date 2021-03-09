@@ -1,3 +1,5 @@
+Este é projeto foi um live coding da Digital Innovation One utilizado como material do BootCamp Inter Java Developer. Neste projeto didático, minha responsabilidade foi a implementação das funções de incremento e decremento de estoque e os respectivos testes, utilizando metodologia TDD.
+
 <h2>Digital Innovation: Expert class - Desenvolvimento de testes unitários para validar uma API REST de gerenciamento de estoques de cerveja.</h2>
 
 Nesta live coding, vamos aprender a testar, unitariamente, uma API REST para o gerenciamento de estoques de cerveja. Vamos desenvolver testes unitários para validar o nosso sistema de gerenciamento de estoques de cerveja, e também apresentar os principais conceitos e vantagens de criar testes unitários com JUnit e Mockito. Além disso, vamos também mostrar como desenvolver funcionalidades da nossa API através da prática do TDD.
